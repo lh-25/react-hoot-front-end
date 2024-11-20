@@ -14,6 +14,19 @@ const index = async () => {
   }
 }
 
+const indexMyHoots = async () => {
+  try {
+    const token = localStorage.getItem('token')
+    const res = await axios.get(`${BASE_URL}/my-hoots`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    return res.data
+  } catch (error) {
+   console.log(error) 
+   throw error
+  }
+}
+
 const show = async (hootId) => {
   try {
     const token = localStorage.getItem('token')
@@ -89,6 +102,7 @@ export {
   create,
   createComment,
   deleteHoot,
-  update
+  update,
+  indexMyHoots
 
 }

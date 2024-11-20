@@ -8,15 +8,17 @@ import SigninForm from './components/SigninForm/SigninForm';
 import HootList from './components/HootList/HootList';
 import HootDetails from './components/HootDetails/HootDetails';
 import HootForm from './components/HootForm/HootForm';
+import MyHoots from './components/MyHoots/MyHoots';
 import * as authService from '../src/services/authService'; // import the authservice
 import * as hootService from '../src/services/hootService'
 
 
 export const AuthedUserContext = createContext(null);
 
-export default function App ()  {
+export default function App () {
   const [user, setUser] = useState(authService.getUser()); // using the method from authservice
-  const [hoots,setHoots] = useState([])
+  const [hoots, setHoots] = useState([])
+  const [myHoots, setMyHoots] = useState([])
 
   const navigate = useNavigate()
 
@@ -26,7 +28,7 @@ export default function App ()  {
     setHoots([newHoot, ...hoots])
     navigate('/hoots')
   }
-  
+
   const handleDeleteHoot = async (hootId) => {
     const deletedHoot = await hootService.deleteHoot(hootId)
     setHoots(hoots.filter((hoot) => hoot._id !== deletedHoot._id))
@@ -34,21 +36,35 @@ export default function App ()  {
   }
 
   const handleUpdateHoot = async (hootId, hootFormData) => {
-    const updatedHoot = await hootService.update(hootId,hootFormData ) 
+    const updatedHoot = await hootService.update(hootId, hootFormData)
     setHoots(hoots.map((hoot) => (hootId === hoot._id ? updatedHoot : hoot)))
     navigate(`/hoots/${hootId}`)
   }
 
   useEffect(() => {
- const getAllHoots = async () => {
-    const hootsData = await hootService.index()
-    setHoots(hootsData)
-  }
-  if (user) {
-    getAllHoots()
-  }
+    const getAllHoots = async () => {
+      const hootsData = await hootService.index()
+      setHoots(hootsData)
+    }
+    if (user) {
+      getAllHoots()
+    }
   }, [user])
- 
+
+  useEffect(() => {
+    const getMyHoots = async () => {
+      try {
+        const hootsData = await hootService.indexMyHoots()
+        setMyHoots(hootsData)
+
+      } catch (error) {
+        console.log('Error fetching my hoots', error)
+      }
+    }
+    if (user) {
+      getMyHoots()
+    }
+  }, [user])
 
   const handleSignout = () => {
     authService.signout();
@@ -62,11 +78,12 @@ export default function App ()  {
         <Routes>
           {user ? (
             <>
-            <Route path="/" element={<Dashboard user={user} />} />
-            <Route path="/hoots" element={<HootList hoots={hoots} />} /> 
-            <Route path="/hoots/:hootId" element={<HootDetails handleDeleteHoot={handleDeleteHoot} />} /> 
-            <Route path="/hoots/new" element={<HootForm handleAddHoot={handleAddHoot} />} />  
-            <Route path="/hoots/:hootId/edit" element={<HootForm handleUpdateHoot={handleUpdateHoot} />} />
+              <Route path="/" element={<Dashboard user={user} />} />
+              <Route path="/hoots" element={<HootList hoots={hoots} />} />
+              <Route path="/my-hoots" element={<MyHoots myHoots={myHoots} />} />
+              <Route path="/hoots/:hootId" element={<HootDetails handleDeleteHoot={handleDeleteHoot} />} />
+              <Route path="/hoots/new" element={<HootForm handleAddHoot={handleAddHoot} />} />
+              <Route path="/hoots/:hootId/edit" element={<HootForm handleUpdateHoot={handleUpdateHoot} />} />
             </>
           ) : (
             <Route path="/" element={<Landing />} />
